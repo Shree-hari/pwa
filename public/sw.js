@@ -44,8 +44,8 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request)
+  event.respondWith(  // here we have used event.request because all the sites are loaded when a client sends request for that site and gets respose in return
+    caches.match(event.request)// This line basically says that we need to check if the URL links which we need to load the site if they are present in the cache or not.  
       .then(function(response) {
         if (response) {
           return response;
