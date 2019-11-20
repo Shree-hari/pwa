@@ -32,10 +32,10 @@ self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys()
       .then(function(keyList) {
-        return Promise.all(keyList.map(function(key) {
-          if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
+        return Promise.all(keyList.map(function(key) {// this line returns the list of caches inside the cache storage
+          if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {//it checks if the updated static and dynamic keys are present or not  
             console.log('[Service Worker] Removing old cache.', key);
-            return caches.delete(key);
+            return caches.delete(key);//this line of code is to delete the older versions of caches inside the cache storage
           }
         }));
       })
