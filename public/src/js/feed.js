@@ -2,6 +2,17 @@ var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 var sharedMomentsArea = document.querySelector('#shared-moments');
+// Below is the function which is used to save something when user requests it to save it inside the cache. 
+function onSaveButtonClicked(event){
+  console.log("clicked");
+  if('caches' in window){
+    caches.open('user-requested');
+      .then(function(cache){
+        cache.add('https://httpbin.org/get');
+        cache.add('/src/images/sf-boat.jpg');
+      });
+  }
+}
 
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
@@ -30,6 +41,12 @@ shareImageButton.addEventListener('click', openCreatePostModal);
 
 closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
 
+function clearCards() {
+  while(sharedMomentsArea.hasChildNodes()){
+    sharedMomentsArea.removeChild(sharedMomentsArea.lastChild);
+  }
+}
+
 function createCard() {
   var cardWrapper = document.createElement('div');
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
@@ -53,10 +70,37 @@ function createCard() {
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
-fetch('https://httpbin.org/get')
+//Cache then network strategy
+
+var url = 'https://httpbin.org/get';
+var networkDataReceived = false ;
+fetch(url)
   .then(function(res) {
     return res.json();
   })
   .then(function(data) {
+    networkDataReceived = true ;
+    console.log('From web: ',data);
+    clearCards();
     createCard();
   });
+
+
+if('caches' in window){
+    caches.match(url)
+      .then(function(response){
+        if(response){
+          return response.json();
+        }
+      })
+      .then(function(data){
+        console.log('From cache: ',data);
+        if(!networkDataReceived){//this line ensures that if the data is fetched fatser from the netwirk then we don't need to get the same data from the cache 
+          clearCards();
+          createCard();  
+        }
+        
+      });
+  }
+
+

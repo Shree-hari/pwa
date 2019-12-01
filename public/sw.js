@@ -44,28 +44,112 @@ self.addEventListener('activate', function(event) {
   return self.clients.claim();
 });
 
+//Cache then network strategy
+
 self.addEventListener('fetch', function(event) {
-  event.respondWith(  // here we have used event.request because all the sites are loaded when a client sends request for that site and gets respose in return
-    caches.match(event.request)// This line basically says that we need to check if the URL links which we need to load the site if they are present in the cache or not.  
-      .then(function(response) {
-        if (response) {
-          return response;
-        } else {
-          return fetch(event.request)
-            .then(function(res) {
-              return caches.open(CACHE_DYNAMIC_NAME)
-                .then(function(cache) {
-                  cache.put(event.request.url, res.clone());
-                  return res;
-                })
-            })
-            .catch(function(err) {
-              return caches.open(CACHE_STATIC_NAME)
-                .then(function(cache) {
-                  return cache.match('/offline.html');// falling back to offline page when the we get get any kind of error while loading any of the pages
-                });
-            });
-        }
-      })
-  );
+  var url = 'https://httpbin.org/get';
+  if(event.request.url.indexxOf(url)> -1){
+    event.respondWith(  // here we have used event.request because all the sites are loaded when a client sends request for that site and gets respose in return
+    caches.open(CACHE_DYNAMIC_NAME)
+     .then(function(cache){
+      return fetch(event.request)
+        .then(function(res){
+          caches.put(event.request , res.clone());
+          return res;
+        })
+     })
+  );  
+  }
+  
 });
+
+
+//Cache then network
+// self.addEventListener('fetch', function(event) {
+//   event.respondWith(  // here we have used event.request because all the sites are loaded when a client sends request for that site and gets respose in return
+//     caches.match(event.request)// This line basically says that we need to check if the URL links which we need to load the site if they are present in the cache or not.  
+//       .then(function(response) {
+//         if (response) {
+//           return response;
+//         } else {
+//           return fetch(event.request)
+//             .then(function(res) {
+//               return caches.open(CACHE_DYNAMIC_NAME)
+//                 .then(function(cache) {
+//                   cache.put(event.request.url, res.clone());
+//                   return res;
+//                 })
+//             })
+//             .catch(function(err) {
+//               return caches.open(CACHE_STATIC_NAME)
+//                 .then(function(cache) {
+//                   return cache.match('/offline.html');// falling back to offline page when the we get get any kind of error while loading any of the pages
+//                 });
+//             });
+//         }
+//       })
+//   );
+// });
+
+//Network only strategy
+//self.addEventListener('fetch', function(event){
+//  event.respondWith(
+//    fetch(event.request)
+//    );
+//});
+
+//Network with dynamic cache fallback
+// self.addEventListener('fetch', function(event){
+//   event.respondWith(
+//     fetch(event.request)
+//       .then(function(res){
+//         return caches.open(CACHE_DYNAMIC_NAME)
+//           .then(function(cache){
+//             cache.put(event.request.url , res.clone());
+//               return res;
+//           })
+//       })
+//       .catch(function(err) {
+//              return caches.open(CACHE_STATIC_NAME)
+//                .then(function(cache) {
+//                  return cache.match('/offline.html');// falling back to offline page when the we get get any kind of error while loading any of the pages
+//                });
+//            })
+//     );
+// });
+
+
+
+//Cache only strategy
+//self.addEventListener('fetch', function(event){
+//  event.respondWith(
+//    caches.match(event.request)
+//    );
+//});
+
+//Network only strategy
+//self.addEventListener('fetch', function(event){
+//  event.respondWith(
+//    fetch(event.request)
+//    );
+//});
+
+//Network with dynamic cache fallback
+// self.addEventListener('fetch', function(event){
+//   event.respondWith(
+//     fetch(event.request)
+//       .then(function(res){
+//         return caches.open(CACHE_DYNAMIC_NAME)
+//           .then(function(cache){
+//             cache.put(event.request.url , res.clone());
+//               return res;
+//           })
+//       })
+//       .catch(function(err) {
+//              return caches.open(CACHE_STATIC_NAME)
+//                .then(function(cache) {
+//                  return cache.match('/offline.html');// falling back to offline page when the we get get any kind of error while loading any of the pages
+//                })
+//            })
+//     );
+// });
