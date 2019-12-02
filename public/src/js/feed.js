@@ -6,13 +6,23 @@ var sharedMomentsArea = document.querySelector('#shared-moments');
 function onSaveButtonClicked(event){
   console.log("clicked");
   if('caches' in window){
-    caches.open('user-requested');
+    caches.open('user-requested')
       .then(function(cache){
         cache.add('https://httpbin.org/get');
         cache.add('/src/images/sf-boat.jpg');
       });
   }
 }
+  // these are the lines which helps us to deregister the service worker as and when required
+  // if ('serviceWorker' in navigator) {
+  //   navigator.serviceWorker.getRegistrations()
+  //     .then(function(registrations) {
+  //       for (var i = 0; i < registrations.length; i++) {
+  //         registrations[i].unregister();
+  //       }
+  //     })
+  // }
+
 
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
@@ -95,7 +105,8 @@ if('caches' in window){
       })
       .then(function(data){
         console.log('From cache: ',data);
-        if(!networkDataReceived){//this line ensures that if the data is fetched fatser from the netwirk then we don't need to get the same data from the cache 
+        //this line ensures that if the data is fetched fatser from the netwirk then we don't need to get the same data from the cache 
+        if(!networkDataReceived){
           clearCards();
           createCard();  
         }

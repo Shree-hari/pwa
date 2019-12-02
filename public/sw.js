@@ -1,14 +1,7 @@
 
 var CACHE_STATIC_NAME = 'static-v10';
 var CACHE_DYNAMIC_NAME = 'dynamic-v2';
-
-self.addEventListener('install', function(event) {
-  console.log('[Service Worker] Installing Service Worker ...', event);
-  event.waitUntil(
-    caches.open(CACHE_STATIC_NAME)
-      .then(function(cache) {
-        console.log('[Service Worker] Precaching App Shell');
-        cache.addAll([
+var STATIC_FILES = [
           // '/',
           '/index.html',
           '/offline.html',
@@ -22,8 +15,15 @@ self.addEventListener('install', function(event) {
           '/src/images/main-image.jpg',
           'https://fonts.googleapis.com/css?family=Roboto:400,700',
           'https://fonts.googleapis.com/icon?family=Material+Icons',
-          'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
-        ]);
+          'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'];
+
+self.addEventListener('install', function(event) {
+  console.log('[Service Worker] Installing Service Worker ...', event);
+  event.waitUntil(
+    caches.open(CACHE_STATIC_NAME)
+      .then(function(cache) {
+        console.log('[Service Worker] Precaching App Shell');
+        cache.addAll(STATIC_FILES);
       })
   )
 });
@@ -44,22 +44,65 @@ self.addEventListener('activate', function(event) {
   return self.clients.claim();
 });
 
+function isInArray(string,array){
+  for(var i=0;i<array.length;i++){
+    if(array[i]===string){
+      return true;
+    }
+  } return false;
+}
+
 //Cache then network strategy
 
 self.addEventListener('fetch', function(event) {
   var url = 'https://httpbin.org/get';
-  if(event.request.url.indexxOf(url)> -1){
+  if(event.request.url.indexOf(url)> -1){
     event.respondWith(  // here we have used event.request because all the sites are loaded when a client sends request for that site and gets respose in return
     caches.open(CACHE_DYNAMIC_NAME)
      .then(function(cache){
       return fetch(event.request)
         .then(function(res){
-          caches.put(event.request , res.clone());
+          cache.put(event.request , res.clone());
           return res;
         })
      })
-  );  
-  }
+  ); 
+  } else if(isInArray(event.request.url , STATIC_FILES)){
+       event.respondWith(
+   caches.match(event.request)
+   );
+  } else{ // here we have used event.request because all the sites are loaded when a client sends request for that site and gets respose in return
+    event.respondWith( 
+      // This line basically says that we need to check if the URL links which we need to load the site if they are present in the cache or not.
+      caches.match(event.request)  
+      .then(function(response) {
+        if (response) {
+          return response;
+        } else {
+          return fetch(event.request)
+            .then(function(res) {
+              return caches.open(CACHE_DYNAMIC_NAME)
+                .then(function(cache) {
+                  cache.put(event.request.url, res.clone());
+                  return res;
+                })
+            })
+            .catch(function(err) {
+              return caches.open(CACHE_STATIC_NAME)
+                .then(function(cache) {
+                  //the below line of code ensures that we load the offline page only if any of the html pages fail to load.
+                  //here we eleminate the appearing of offline page in case any kind of css or json file fails to load 
+                  if(event.request.headers.get('accept').includes('text/html')){
+                    // falling back to offline page when the we get get any kind of error while loading any of the pages  
+                    return cache.match('/offline.html');
+                  }
+                  
+                });
+            });
+        }
+      })
+  );
+  } 
   
 });
 
