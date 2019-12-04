@@ -1,0 +1,37 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        </head>
+<body>
+	<div id="a">
+		Still not loaded.
+	</div>
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.5.0/firebase-app.js"></script>
+
+<script type="text/javascript">var firebaseConfig = {
+    apiKey: "AIzaSyCJML56Bk6Sb99uJpYdqTU2ze2pOzYhdZI",
+    authDomain: "pwagram-6cc96.firebaseapp.com",
+    databaseURL: "https://pwagram-6cc96.firebaseio.com",
+    projectId: "pwagram-6cc96",
+    storageBucket: "pwagram-6cc96.appspot.com",
+    messagingSenderId: "13463014819",
+    appId: "1:13463014819:web:a37848638ab14d9b3bde16",
+    measurementId: "G-EQPCGSJY7C"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);</script>
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.5.0/firebase-database.js"></script>
+<script>
+var dbobject= firebase.database().ref();
+dbobject.on('value', function(snapshot) {
+  //updateUI(snapshot.val());
+document.getElementById("a").innerHTML=JSON.stringify(snapshot.val());
+});
+</script>
+</body>
+</html>

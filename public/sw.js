@@ -1,5 +1,10 @@
 
-var CACHE_STATIC_NAME = 'static-v10';
+
+importScripts('/src/js/idb.js');
+importScripts('/src/js/utility.js');
+
+
+var CACHE_STATIC_NAME = 'static-v17';
 var CACHE_DYNAMIC_NAME = 'dynamic-v2';
 var STATIC_FILES = [
           // '/',
@@ -7,6 +12,7 @@ var STATIC_FILES = [
           '/offline.html',
           '/src/js/app.js',
           '/src/js/feed.js',
+          '/src/js/idb.js',
           '/src/js/promise.js',
           '/src/js/fetch.js',
           '/src/js/material.min.js',
@@ -16,6 +22,17 @@ var STATIC_FILES = [
           'https://fonts.googleapis.com/css?family=Roboto:400,700',
           'https://fonts.googleapis.com/icon?family=Material+Icons',
           'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'];
+
+
+// var dbPromise = idb.open('posts-store' /*database name*/, 1/*version no.*/ , function(db){
+//   //Here first we need to check if the table is already present or not 
+//   //If it is already present there's no need to create the table with the same name again 
+//   //If we do it without checking then whole table with be replaced by entirely new table
+//   if (!db.objectStoreNames.contains('posts')){
+//     db.createObjectStore('posts'/*table name*/, {keyPath: 'id'}/*kind oof primary key*/);
+//   }
+// });
+
 
 self.addEventListener('install', function(event) {
   console.log('[Service Worker] Installing Service Worker ...', event);
@@ -27,6 +44,20 @@ self.addEventListener('install', function(event) {
       })
   )
 });
+
+// function trimCache(cacheName, maxItems) {
+//   caches.open(cacheName)
+//     .then(function (cache) {
+//       return cache.keys()
+//         .then(function (keys) {
+//           if (keys.length > maxItems) {
+//             cache.delete(keys[0])
+//               .then(trimCache(cacheName, maxItems));
+//           }
+//         });
+//     })
+// }
+
 
 self.addEventListener('activate', function(event) {
   console.log('[Service Worker] Activating Service Worker ....', event);
@@ -55,17 +86,33 @@ function isInArray(string,array){
 //Cache then network strategy
 
 self.addEventListener('fetch', function(event) {
-  var url = 'https://httpbin.org/get';
+  var url = 'https://pwagram-6cc96.firebaseio.com/posts';
   if(event.request.url.indexOf(url)> -1){
     event.respondWith(  // here we have used event.request because all the sites are loaded when a client sends request for that site and gets respose in return
-    caches.open(CACHE_DYNAMIC_NAME)
+    /*caches.open(CACHE_DYNAMIC_NAME)
      .then(function(cache){
-      return fetch(event.request)
+      return */fetch(event.request)
         .then(function(res){
-          cache.put(event.request , res.clone());
+         // cache.put(event.request , res.clone());
+          var clonedRes = res.clone();
+          clonedRes.json()//.json() is a promise so now to access the data from the json list we need to use then() 
+            .then(function(data){
+              for (var key in data){//here key is just the identifier of all the poasts though  
+                writeData('posts' , data[key]);
+                // dbPromise// now in the .then() we get the access of the opened database
+                //   .then(function(db){
+                //     //we need to use .transaction() function because indexed DB is a trasactional database
+                //     var tx = db.transaction('posts'/*Table name*/, 'readwrite'/*operation to be performed*/); 
+                //     var store = tx.objectStore('posts');
+                //     store.put(data[key]);
+                //     return tx.complete;//here .complete is not a method its just a property
+                //   });
+
+              }
+            }); 
           return res;
         })
-     })
+     //})
   ); 
   } else if(isInArray(event.request.url , STATIC_FILES)){
        event.respondWith(
