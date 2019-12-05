@@ -38,3 +38,17 @@ function clearAllData(st){
                     return tx.complete;//after performing any kind of write operation on the table we need to use this property
                   });
 }
+
+function deleteItemFromData(st , id){
+	return dbPromise// now in the .then() we get the access of the opened database
+                  .then(function(db){
+                    //we need to use .transaction() function because indexed DB is a trasactional database
+                    var tx = db.transaction(st/*Table name*/, 'readwrite'/*operation to be performed*/); 
+                    var store = tx.objectStore(st);
+                    store.delete(id);
+                    return tx.complete;//here .complete is not a method its just a property
+                  })
+                  .then(function(){
+                  	console.log('Item deleted');
+                  });
+}
