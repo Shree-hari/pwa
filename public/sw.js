@@ -4,7 +4,7 @@ importScripts('/src/js/idb.js');
 importScripts('/src/js/utility.js');
 
 
-var CACHE_STATIC_NAME = 'static-v17';
+var CACHE_STATIC_NAME = 'static-v18';
 var CACHE_DYNAMIC_NAME = 'dynamic-v2';
 var STATIC_FILES = [
           // '/',
@@ -95,21 +95,26 @@ self.addEventListener('fetch', function(event) {
         .then(function(res){
          // cache.put(event.request , res.clone());
           var clonedRes = res.clone();
-          clonedRes.json()//.json() is a promise so now to access the data from the json list we need to use then() 
+          clearAllData('posts')
+            .then(function(){
+              return clonedRes.json();//.json() is a promise so now to access the data from the json list we need to use then() 
+                               
+            })
             .then(function(data){
-              for (var key in data){//here key is just the identifier of all the poasts though  
-                writeData('posts' , data[key]);
-                // dbPromise// now in the .then() we get the access of the opened database
-                //   .then(function(db){
-                //     //we need to use .transaction() function because indexed DB is a trasactional database
-                //     var tx = db.transaction('posts'/*Table name*/, 'readwrite'/*operation to be performed*/); 
-                //     var store = tx.objectStore('posts');
-                //     store.put(data[key]);
-                //     return tx.complete;//here .complete is not a method its just a property
-                //   });
+                  for (var key in data){//here key is just the identifier of all the poasts though  
+                    writeData('posts' , data[key]);
+                    // dbPromise// now in the .then() we get the access of the opened database
+                    //   .then(function(db){
+                    //     //we need to use .transaction() function because indexed DB is a trasactional database
+                    //     var tx = db.transaction('posts'/*Table name*/, 'readwrite'/*operation to be performed*/); 
+                    //     var store = tx.objectStore('posts');
+                    //     store.put(data[key]);
+                    //     return tx.complete;//here .complete is not a method its just a property
+                    //   });
 
-              }
-            }); 
+                  }
+              });
+
           return res;
         })
      //})
