@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css">
+        href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css"><!-- material design layout -->
   <link rel="stylesheet" href="/src/css/app.css">
   <link rel="stylesheet" href="/src/css/feed.css">
   <link rel="manifest" href="/manifest.json">
@@ -76,6 +76,7 @@
         </nav>
       </div>
     </header>
+    <!-- Side drawer for the app -->
     <div class="mdl-layout__drawer">
       <span class="mdl-layout-title">PWAGram</span>
       <nav class="mdl-navigation">
@@ -88,6 +89,7 @@
         </div>
       </nav>
     </div>
+    <!-- Side drawer for the app ends here -->
     <main class="mdl-layout__content mat-typography">
       <div id="create-post">
         <form>
@@ -114,6 +116,9 @@
         </form>
       </div>
       <img src="/src/images/main-image.jpg"
+           srcset="/src/images/main-image-lg.jpg 1200w,
+                   /src/images/main-image.jpg 900w,
+                   /src/images/main-image-sm.jpg 480w" 
            alt="Explore the City"
            class="main-image">
       <div class="page-content">

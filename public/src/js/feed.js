@@ -1,18 +1,12 @@
-// const firebaseConfig = {
-//   apiKey: "AIzaSyCJML56Bk6Sb99uJpYdqTU2ze2pOzYhdZI",
-//   authDomain: "pwagram-6cc96.firebaseapp.com",
-//   databaseURL: "https://pwagram-6cc96.firebaseio.com",
-//   projectId: "pwagram-6cc96",
-//   storageBucket: "pwagram-6cc96.appspot.com",
-//   messagingSenderId: "13463014819",
-//   appId: "1:13463014819:web:a37848638ab14d9b3bde16",
-//   measurementId: "G-EQPCGSJY7C"
-// };
 
 var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 var sharedMomentsArea = document.querySelector('#shared-moments');
+var form = document.querySelector('form');
+var titleInput = document.querySelector('#title');
+var locationInput = document.querySelector('#location');
+
 // Below is the function which is used to save something when user requests it to save it inside the cache. 
 function onSaveButtonClicked(event){
   console.log("clicked");
@@ -34,9 +28,10 @@ function onSaveButtonClicked(event){
   //     })
   // }
 
-
+//Function to open the + menu
 function openCreatePostModal() {
-  createPostArea.style.display = 'block';
+  //createPostArea.style.display = 'block';
+  createPostArea.style.transform = 'translateY(0)';
   if (deferredPrompt) {
     deferredPrompt.prompt();
 
@@ -53,13 +48,16 @@ function openCreatePostModal() {
     deferredPrompt = null;
   }
 }
-
+//Function to close the + menu
 function closeCreatePostModal() {
-  createPostArea.style.display = 'none';
+  //createPostArea.style.display = 'none';
+  createPostArea.style.transform = 'translateY(100vh)';
 }
 
+//using click as a trigger to open the + menu
 shareImageButton.addEventListener('click', openCreatePostModal);
 
+//using click as a trigger to close the x menu
 closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
 
 function clearCards() {
@@ -106,6 +104,7 @@ function updateUI(data){
 // console.log(snapshot.val());
 // })
 // ;
+
 var url = 'https://pwagram-6cc96.firebaseio.com/posts.json';
 var networkDataReceived = false ;
 fetch(url)
@@ -138,7 +137,7 @@ if('indexedDB' in window){
     //   })
     //   .then(function(data){
     //     console.log('From cache: ',data);
-    //     //this line ensures that if the data is fetched fatser from the netwirk then we don't need to get the same data from the cache 
+    //     //this line ensures that if the data is fetched fatser from the network then we don't need to get the same data from the cache 
     //     if(!networkDataReceived){
     //       var dataArray=[];
     //       for (var key in data){
@@ -151,4 +150,38 @@ if('indexedDB' in window){
     //   });
   }
 
+form.addEventListener('submit', function(event){
+  event.preventDefault();
+  if (titleInput.value.trim() === '' || locationInput.value.trim() === ''){
+    alert('Please enter valid data');
+    return;
+  }
+  closeCreatePostModal();
+  // Lets check if the browser supports service worker and syncmanager
+  if ('serviceWorker' in navigator && 'SyncManager' in navigator){
+    navigator.serviceWorker.ready
+    //we need to use the above command because the service worker was initiated in sw.js and after that to get it ready and working we use .ready promise
+      .then(function(sw){
+        var post = {
+          id : new Date().toISOString(),
+          title : titleInput.value,
+          location : locationInput.value
+        };
+        writeData('sync-posts', post)// We need to use indexedDB before using sync register because sync register doesn't has its own database
+          .then(function(){
+            return sw.sync.register('sync-new-post');//this will register the sync event in the service worker file
+          })
+          .then(function(){
+            var snackbarContainer = document.querySelector('#confirmation-toast');
+            var data = {message: 'Your post was saved for syncing!'};
+            snackbarContainer.MaterialSnackbar.showSnackar(data);
+          })
+          .catch(function (err){
+            console.log(err);
+          });
+        
+      });
+  }
+
+});
 

@@ -5,6 +5,9 @@ var dbPromise = idb.open('posts-store' /*database name*/, 1/*version no.*/ , fun
   if (!db.objectStoreNames.contains('posts')){
     db.createObjectStore('posts'/*table name*/, {keyPath: 'id'}/*kind oof primary key*/);
   }
+  if (!db.objectStoreNames.contains('sync-posts')){
+    db.createObjectStore('sync-posts'/*table name*/, {keyPath: 'id'}/*kind oof primary key*/);
+  }
 });
 
 function writeData(st , data){
