@@ -17,7 +17,7 @@ function writeData(st , data){
                     var tx = db.transaction(st/*Table name*/, 'readwrite'/*operation to be performed*/); 
                     var store = tx.objectStore(st);
                     store.put(data);
-                    return tx.complete;//here .complete is not a method its just a property
+                    return tx.complete;//here .complete is not a method its just a property which ensures that the transaction is done
                   });
 }
 
