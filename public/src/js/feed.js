@@ -191,7 +191,7 @@ form.addEventListener('submit', function(event){
         };
         writeData('sync-posts', post)// We need to use indexedDB before using sync register because sync register doesn't has its own database
           .then(function(){
-            return sw.sync.register('sync-new-post');//this will register the sync event in the service worker file
+            return sw.sync.register('sync-new-posts');//this will register the sync event in the service worker file
           })
           .then(function(){
             var snackbarContainer = document.querySelector('#confirmation-toast');

@@ -248,3 +248,10 @@ self.addEventListener('fetch', function(event) {
 //            })
 //     );
 // });
+
+
+//The below set of line :- When the service worker detects that it re established connectivity or it will also fire
+//if the connectivity was already there as soon as a new sync task was registered  
+self.addEventListener('sync',function(){
+
+});
