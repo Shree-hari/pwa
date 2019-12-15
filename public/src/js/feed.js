@@ -105,6 +105,28 @@ function updateUI(data){
 // })
 // ;
 
+
+// Below is the function for fallback sent data . It will be used in case the browser doesn't support the Sync events
+function sendData(){
+  fetch('https://pwagram-6cc96.firebaseio.com/posts.json',{
+    method:'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      id: new Date.toISOString(),
+      title: titleInput.value,
+      location: locationInput.value,
+      image: 'https://1920x1080hdwallpapers.com/image/201602/abstract/4823/glow-smoke-blue-dark-650x366.jpg'
+    })
+  })
+  .then(function(res){
+    console.log('Sent data', res);
+    updateUI();
+  })
+}
+
 var url = 'https://pwagram-6cc96.firebaseio.com/posts.json';
 var networkDataReceived = false ;
 fetch(url)
@@ -181,6 +203,8 @@ form.addEventListener('submit', function(event){
           });
         
       });
+  } else {
+    sendData();
   }
 
 });
