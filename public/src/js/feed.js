@@ -1,4 +1,5 @@
-
+var postsDburl = 'https://pwagram-6cc96.firebaseio.com/posts.json';
+var networkDataReceived = false ;
 var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
@@ -6,6 +7,7 @@ var sharedMomentsArea = document.querySelector('#shared-moments');
 var form = document.querySelector('form');
 var titleInput = document.querySelector('#title');
 var locationInput = document.querySelector('#location');
+var snackbarContainer = document.querySelector('#confirmation-toast');
 
 // Below is the function which is used to save something when user requests it to save it inside the cache. 
 function onSaveButtonClicked(event){
@@ -107,42 +109,43 @@ function updateUI(data){
 
 
 // Below is the function for fallback sent data . It will be used in case the browser doesn't support the Sync events
-function sendData(){
-  fetch('https://pwagram-6cc96.firebaseio.com/posts.json',{
+// Manas: I changed this to an async function so that we can wait for it to complete, before refreshing posts
+async function sendData(){
+  var res=await fetch('https://pwagram-6cc96.firebaseio.com/posts.json',{
     method:'POST',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
     body: JSON.stringify({
-      id: new Date.toISOString(),
+      id: (new Date).toISOString(),
       title: titleInput.value,
       location: locationInput.value,
       image: 'https://1920x1080hdwallpapers.com/image/201602/abstract/4823/glow-smoke-blue-dark-650x366.jpg'
     })
   })
-  .then(function(res){
-    console.log('Sent data', res);
-    updateUI();
-  })
+  console.log('Sent data', res);
 }
 
-var url = 'https://pwagram-6cc96.firebaseio.com/posts.json';
-var networkDataReceived = false ;
-fetch(url)
-  .then(function(res) {
-    return res.json();
-  })
-  .then(function(data) {
-    networkDataReceived = true ;
-    console.log('From web: ',data);
-    var dataArray=[];
-    for (var key in data){
-      dataArray.push(data[key]);
-    }
-    updateUI(dataArray);
-  });
-
+// We will need to refresh posts again in the future, so changed this piece of code to a function
+function loadPosts(){
+	networkDataReceived = false ;
+	var url=postsDburl;
+	fetch(url)
+	  .then(function(res) {
+		return res.json();
+	  })
+	  .then(function(data) {
+		networkDataReceived = true ;
+		console.log('From web: ',data);
+		var dataArray=[];
+		for (var key in data){
+		  dataArray.push(data[key]);
+		}
+		updateUI(dataArray);
+	  });
+}
+loadPosts();
 
 if('indexedDB' in window){
   readAllData('posts')
@@ -180,7 +183,7 @@ form.addEventListener('submit', function(event){
   }
   closeCreatePostModal();
   // Lets check if the browser supports service worker and syncmanager
-  if ('serviceWorker' in navigator && 'SyncManager' in navigator){
+  if ('serviceWorker' in navigator && 'SyncManager' in window && false){	// currently ANDing with false to disable this block
     navigator.serviceWorker.ready
     //we need to use the above command because the service worker was initiated in sw.js and after that to get it ready and working we use .ready promise
       .then(function(sw){
@@ -194,9 +197,7 @@ form.addEventListener('submit', function(event){
             return sw.sync.register('sync-new-posts');//this will register the sync event in the service worker file
           })
           .then(function(){
-            var snackbarContainer = document.querySelector('#confirmation-toast');
-            var data = {message: 'Your post was saved for syncing!'};
-            snackbarContainer.MaterialSnackbar.showSnackar(data);
+            snackbarContainer.MaterialSnackbar.showSnackbar({message: 'Your post was saved for syncing!'});
           })
           .catch(function (err){
             console.log(err);
@@ -204,7 +205,10 @@ form.addEventListener('submit', function(event){
         
       });
   } else {
-    sendData();
+	  snackbarContainer.MaterialSnackbar.showSnackbar({message: "Post will now be sent and lists of posts will update once post has been sent..."});
+    sendData()  // This will resolve in the future, so we have to wait before refreshing posts
+	.then(function(){loadPosts();})	// Once post is sent, reload the list of posts
+	.catch(function(){materialSnackbarContainer.showSnackbar({message: 'Post couldn\'t be sent, try again later...'})});
   }
 
 });
